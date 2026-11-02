@@ -15,7 +15,7 @@
 #              `./waf install` 后打包为可重定位的 tar.gz（附启动脚本）；
 #   - macOS  : macos-latest (Apple Silicon) + Homebrew 依赖，
 #              后端 coreaudio/dummy，打包为 Ardour.app 并压成 .dmg；
-#   - Windows: MSYS2 MINGW64 (mingw-w64 gcc)，后端 portaudio/jack/dummy，
+#   - Windows: MSYS2 UCRT64 (mingw-w64 gcc, UCRT 运行时)，后端 portaudio/jack/dummy，
 #              打包为 zip（自动收集全部依赖 DLL）。
 #
 # 发布策略（并发安全）：
@@ -558,58 +558,60 @@ jobs:
           echo "artifact_name=${ARTIFACT}" >> "$GITHUB_ENV"
 
       # =====================================================================
-      # Windows（windows-latest）：MSYS2 MINGW64 + waf 构建 + DLL 收集 zip
+      # Windows（windows-latest）：MSYS2 UCRT64 + waf 构建 + DLL 收集 zip
+      # 注意：MSYS2 已弃用 MINGW64，且 glibmm/atkmm/lilv/rubberband 等包已
+      # 从 mingw64 仓库移除（仅在 ucrt64/clang64 提供），必须使用 UCRT64。
       # =====================================================================
       - name: 安装 MSYS2 与依赖 (Windows)
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: UCRT64
           update: false
           release: false
           install: >-
             git unzip make zip python diffutils
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-python
-            mingw-w64-x86_64-pkgconf
-            mingw-w64-x86_64-boost
-            mingw-w64-x86_64-glib2
-            mingw-w64-x86_64-glibmm
-            mingw-w64-x86_64-atk
-            mingw-w64-x86_64-atkmm
-            mingw-w64-x86_64-pango
-            mingw-w64-x86_64-pangomm
-            mingw-w64-x86_64-cairo
-            mingw-w64-x86_64-cairomm
-            mingw-w64-x86_64-gdk-pixbuf2
-            mingw-w64-x86_64-fontconfig
-            mingw-w64-x86_64-freetype
-            mingw-w64-x86_64-harfbuzz
-            mingw-w64-x86_64-gettext
-            mingw-w64-x86_64-libsndfile
-            mingw-w64-x86_64-flac
-            mingw-w64-x86_64-libogg
-            mingw-w64-x86_64-libsamplerate
-            mingw-w64-x86_64-curl
-            mingw-w64-x86_64-libarchive
-            mingw-w64-x86_64-liblo
-            mingw-w64-x86_64-taglib
-            mingw-w64-x86_64-vamp-plugin-sdk
-            mingw-w64-x86_64-rubberband
-            mingw-w64-x86_64-aubio
-            mingw-w64-x86_64-fftw
-            mingw-w64-x86_64-jack2
-            mingw-w64-x86_64-portaudio
-            mingw-w64-x86_64-libusb
-            mingw-w64-x86_64-hidapi
-            mingw-w64-x86_64-libwebsockets
-            mingw-w64-x86_64-libxml2
-            mingw-w64-x86_64-serd
-            mingw-w64-x86_64-sord
-            mingw-w64-x86_64-sratom
-            mingw-w64-x86_64-lilv
-            mingw-w64-x86_64-drmingw
-            mingw-w64-x86_64-libpng
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-python
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-boost
+            mingw-w64-ucrt-x86_64-glib2
+            mingw-w64-ucrt-x86_64-glibmm
+            mingw-w64-ucrt-x86_64-atk
+            mingw-w64-ucrt-x86_64-atkmm
+            mingw-w64-ucrt-x86_64-pango
+            mingw-w64-ucrt-x86_64-pangomm
+            mingw-w64-ucrt-x86_64-cairo
+            mingw-w64-ucrt-x86_64-cairomm
+            mingw-w64-ucrt-x86_64-gdk-pixbuf2
+            mingw-w64-ucrt-x86_64-fontconfig
+            mingw-w64-ucrt-x86_64-freetype
+            mingw-w64-ucrt-x86_64-harfbuzz
+            mingw-w64-ucrt-x86_64-gettext
+            mingw-w64-ucrt-x86_64-libsndfile
+            mingw-w64-ucrt-x86_64-flac
+            mingw-w64-ucrt-x86_64-libogg
+            mingw-w64-ucrt-x86_64-libsamplerate
+            mingw-w64-ucrt-x86_64-curl
+            mingw-w64-ucrt-x86_64-libarchive
+            mingw-w64-ucrt-x86_64-liblo
+            mingw-w64-ucrt-x86_64-taglib
+            mingw-w64-ucrt-x86_64-vamp-plugin-sdk
+            mingw-w64-ucrt-x86_64-rubberband
+            mingw-w64-ucrt-x86_64-aubio
+            mingw-w64-ucrt-x86_64-fftw
+            mingw-w64-ucrt-x86_64-jack2
+            mingw-w64-ucrt-x86_64-portaudio
+            mingw-w64-ucrt-x86_64-libusb
+            mingw-w64-ucrt-x86_64-hidapi
+            mingw-w64-ucrt-x86_64-libwebsockets
+            mingw-w64-ucrt-x86_64-libxml2
+            mingw-w64-ucrt-x86_64-serd
+            mingw-w64-ucrt-x86_64-sord
+            mingw-w64-ucrt-x86_64-sratom
+            mingw-w64-ucrt-x86_64-lilv
+            mingw-w64-ucrt-x86_64-drmingw
+            mingw-w64-ucrt-x86_64-libpng
 
       - name: 克隆 Ardour 源码 (Windows)
         if: runner.os == 'Windows'
@@ -628,12 +630,12 @@ jobs:
           cd ardour
           # 使用 MSYS2 自带的 POSIX python 运行 waf：它的子进程（git/gcc/ar/
           # pkg-config）走 MSYS2 的 POSIX PATH（运行时自动转换参数与路径），
-          # 能稳定找到 /mingw64/bin 下的工具链。mingw 原生 python 的子进程
+          # 能稳定找到 /ucrt64/bin 下的工具链。mingw 原生 python 的子进程
           # 会因 PATH 条目丢失而找不到 gcc/git。
           PY=/usr/bin/python3
           "$PY" -V
           # msys2 的 fftw 包链接时缺 fftwf_make_planner_thread_safe 符号，
-          # 从源码构建单精度 fftw 覆盖安装到 /mingw64（论坛验证过的解法）
+          # 从源码构建单精度 fftw 覆盖安装到 /ucrt64（论坛验证过的解法）
           SRC="$PWD"
           mkdir -p /tmp/fftw && cd /tmp/fftw
           # fftw.org 在 GitHub runner 上经常不可达，使用 Debian 归档的镜像
@@ -643,7 +645,7 @@ jobs:
           cd fftw-3.3.10
           ./configure --with-pic --enable-sse2 --enable-avx --enable-avx2 \
             --enable-float --enable-threads \
-            --with-our-malloc16 --disable-fortran --prefix=/mingw64 > /dev/null
+            --with-our-malloc16 --disable-fortran --prefix=/ucrt64 > /dev/null
           make -j"$(nproc)" > /dev/null
           make install > /dev/null
           cd "$SRC"
@@ -710,7 +712,7 @@ jobs:
 
           # ---- 插件目录（ladspa/lv2/vamp，来自 MSYS2，可选）----
           for d in ladspa lv2 vamp; do
-            [ -d "/mingw64/lib/$d" ] && cp -a "/mingw64/lib/$d" "$DIST/lib/" || true
+            [ -d "/ucrt64/lib/$d" ] && cp -a "/ucrt64/lib/$d" "$DIST/lib/" || true
           done
 
           # ---- 依赖闭包：反复收集 mingw 运行时 DLL（多轮迭代直至收敛）----
@@ -718,7 +720,7 @@ jobs:
           # 因此管道整体用 || true 兜底
           for round in 1 2 3 4 5 6; do
             find "$DIST" -type f \( -name '*.exe' -o -name '*.dll' \) | while read -r f; do
-              deps="$(ldd "$f" 2>/dev/null | awk '/=> *\//{print $3}' | grep '^/mingw64/bin/' || true)"
+              deps="$(ldd "$f" 2>/dev/null | awk '/=> *\//{print $3}' | grep '^/ucrt64/bin/' || true)"
               echo "$deps" | while read -r dll; do
                 [ -f "$dll" ] || continue
                 name="$(basename "$dll")"
